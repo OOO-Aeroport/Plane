@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aircraft List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .no-data {
+            text-align: center;
+            color: #888;
+            margin-top: 20px;
+        }
+        #generateButton {
+            margin: 20px 0;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Aircraft List</h1>
+    <button id="generateButton">Generate Aircraft</button>
+    <table id="aircraftTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fuel</th>
+                <th>Food</th>
+                <th>Baggage</th>
+                <th>Registered Passengers</th>
+                <th>Passengers on Board</th>
+                <th>Status</th>
+                <th>Origin</th>
+                <th>Destination</th>
+                <th>Current Location</th>
+                <th>Future Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if aircrafts %}
+                {% for aircraft in aircrafts %}
+                    <tr>
+                        <td>{{ aircraft.id }}</td>
+                        <td>{{ aircraft.fuel }}</td>
+                        <td>{{ aircraft.food }}</td>
+                        <td>{{ aircraft.baggage }}</td>
+                        <td>{{ aircraft.registered_passengers }}</td>
+                        <td>{{ aircraft.passengers_on_board }}</td>
+                        <td>{{ aircraft.status }}</td>
+                        <td>{{ aircraft.origin }}</td>
+                        <td>{{ aircraft.destination }}</td>
+                        <td>{{ aircraft.current_location }}</td>
+                        <td>{{ aircraft.future_location }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="11" class="no-data">No aircrafts found</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <script>
+        // Функция для обновления таблицы
+        function updateTable() {
+            fetch('/aircrafts')
+                .then(response => response.text())
+                .then(data => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data, 'text/html');
+                    const newTableBody = doc.querySelector('#aircraftTable tbody');
+                    document.querySelector('#aircraftTable tbody').innerHTML = newTableBody.innerHTML;
+                })
+                .catch(error => console.error('Error updating table:', error));
+        }
+
+        // Функция для создания нового самолета
+        function generateAircraft() {
+            fetch('/generate_aircraft', { method: 'GET' })
+                .then(response => {
+                    if (response.ok) {
+                        updateTable(); // Обновляем таблицу после создания самолета
+                    }
+                })
+                .catch(error => console.error('Error generating aircraft:', error));
+        }
+
+        // Обновляем таблицу каждые 5 секунд
+        setInterval(updateTable, 5000);
+
+        // Назначаем обработчик на кнопку
+        document.getElementById('generateButton').addEventListener('click', generateAircraft);
+    </script>
+</body>
+</html>
